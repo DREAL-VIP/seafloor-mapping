@@ -10,6 +10,7 @@ from rasterio.plot import show
 from rasterio.crs import CRS
 from rasterio.windows import Window
 from tqdm import tqdm
+from PIL import Image  # Import Pillow library
 
 # TIFF
 tiff = r'C:\Users\jakem\source\repos\seafloor-mapping\data\BS_composite_10m.tif'
@@ -63,14 +64,13 @@ try:
                 plt.show()
 
                 # Size of the patches
-                patch_size = 256
+                patch_size = 128
 
                 # Create the output directory if it doesn't exist
                 os.makedirs(output_dir, exist_ok=True)
 
                 # Get raster shape
                 height, width = out_image.shape[-2:]
-
                 # Iterate over the image and extract patches
                 for y in tqdm(range(0, height, patch_size)):
                     for x in range(0, width, patch_size):
@@ -82,13 +82,28 @@ try:
 
                         # Check if patch contains valid data
                         if np.any(patch):
-                            # Generate output file name based on patch position
-                            output_file = os.path.join(output_dir, f"patch_{x}_{y}.tif")
+                            # Ensure patch has correct dimensions and data type
+                            patch = np.squeeze(patch)  # Remove single-dimensional entries
+                            if patch.ndim == 2:
+                                # Expand dimensions to make it 3-dimensional (H, W, C)
+                                patch = np.expand_dims(patch, axis=-1)
 
-                            # Write patch to a new TIFF file
-                            with rasterio.open(output_file, 'w', driver='GTiff', width=patch.shape[2], height=patch.shape[1], count=1,
-                                               dtype=patch.dtype) as dst:
-                                dst.write(patch)
+                            # Convert the single-band grayscale patch to RGB format
+                            patch_rgb = np.repeat(patch, 3, axis=-1)  # Repeat the single channel across all three RGB channels
+
+                            # Convert the patch array to uint8 data type
+                            patch_rgb = patch_rgb.astype(np.uint8)
+
+                            # Generate output file name based on patch position
+                            output_file = os.path.join(output_dir, f"patch_{x}_{y}.png")  # Changed extension to PNG
+
+                            # Convert the patch array to PIL Image
+                            pil_image = Image.fromarray(patch_rgb)
+
+                            # Save the PIL Image as PNG
+                            pil_image.save(output_file)
+
+
 
 except Exception as e:
     print("An error occurred:", e)

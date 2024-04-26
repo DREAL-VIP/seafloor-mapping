@@ -13,6 +13,7 @@ from rasterio.windows import Window
 from rasterio.crs import CRS 
 from tqdm import tqdm
 from rasterio.enums import ColorInterp
+from PIL import Image  # Import Pillow library
 
 # TIFF
 tiff = r'C:\Users\jakem\source\repos\seafloor-mapping\data\BS_composite_10m.tif'
@@ -105,7 +106,7 @@ try:
             plt.show()
 
             # Size of the patches
-            patch_size = 256
+            patch_size = 128
 
             # Create the output directory if it doesn't exist
             os.makedirs(raster_output_dir, exist_ok=True)
@@ -126,17 +127,18 @@ try:
                     # Check if patch contains valid data
                     if np.any(patch):
                         # Generate output file name based on patch position
-                        output_file = os.path.join(raster_output_dir, f"patch_{x}_{y}.tif")
+                        output_file = os.path.join(raster_output_dir, f"mask_{x}_{y}.png")  # Changed extension to PNG
 
                         # Apply colors to the patch
                         colored_patch = np.zeros((patch.shape[0], patch.shape[1], 3), dtype=np.uint8)
                         for value, color in colors.items():
                             colored_patch[patch == value] = color
 
-                        # Write patch to a new TIFF file
-                        with rasterio.open(output_file, 'w', driver='GTiff', width=patch.shape[1], height=patch.shape[0], count=3,
-                                           dtype=np.uint8, crs=src.crs, transform=src.transform) as dst:
-                            dst.write(colored_patch.transpose(2, 0, 1))
+                        # Convert the colored patch array to PIL Image
+                        pil_image = Image.fromarray(colored_patch)
+
+                        # Save the PIL Image as PNG
+                        pil_image.save(output_file)
 
 except Exception as e:
     print("An error occurred:", e)
