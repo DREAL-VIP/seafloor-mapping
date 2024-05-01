@@ -16,7 +16,9 @@ from rasterio.enums import ColorInterp
 from PIL import Image  # Import Pillow library
 
 # TIFF
-tiff = r'C:\Users\jakem\source\repos\seafloor-mapping\data\BS_composite_10m.tif'
+#tiff = r'C:\Users\jakem\source\repos\seafloor-mapping\data\BS_composite_10m.tif'
+tiff = r'data\Nahant_NH_bathy.tif'
+#
 # Shapefile
 shape = r'C:\Users\jakem\source\repos\seafloor-mapping\data\Nahant_NH_sedcover.shp'
 # Output directory for raster image patches

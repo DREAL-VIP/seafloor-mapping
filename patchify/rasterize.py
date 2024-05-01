@@ -92,23 +92,25 @@ try:
 
                     # Mask the bathymetry raster with the shapefile geometries
                     bout_image, bout_transform = mask(bathy_src, shapes, invert=False)
-                    bathy_reprojected = np.zeros((bout_image.shape[0], out_image.shape[1], out_image.shape[2]), dtype=bout_image.dtype)
+                    
+                    reprojected_out_image = np.zeros(bout_image.shape, dtype=out_image.dtype)
                     reproject(
-                        bout_image,  # Source data
-                        bathy_reprojected,  # Output buffer
-                        src_transform=bout_transform,  # Source transform
-                        src_crs=bathy_src.crs,  # Source CRS
-                        dst_transform=out_transform,  # Destination transform
-                        dst_crs=out_meta['crs'],  # Destination CRS
+                        out_image,  # Source data
+                        reprojected_out_image,  # Output buffer
+                        src_transform=out_transform,  # Source transform
+                        src_crs=out_meta['crs'],  # Source CRS
+                        dst_transform=bout_transform,  # Destination transform
+                        dst_crs=bathy_src.crs,  # Destination CRS
                         resampling=Resampling.bilinear  # Resampling method
                     )
                     # Append bathymetry band to the main raster bands
-                    merged_bands = np.concatenate([out_image, bathy_reprojected], axis=0)
+                    
+                    merged_bands = np.concatenate([reprojected_out_image, bout_image], axis=0)
 
 
                     print(merged_bands.shape)
                     # Update metadata for the new bands
-                    out_meta.update(count=out_image.shape[0] + 1)  # Increment band count
+                    out_meta.update(count=bout_image.shape[0] + 1)  # Increment band count
 
                     # Assuming merged_bands is the variable containing the merged bands
                     second_band = merged_bands[1, :, :]  # Extract the second band (indexing starts from 0)
@@ -125,7 +127,7 @@ try:
                     patch_size = 128
 
                         # Get raster shape
-                    height, width = out_image.shape[-2:]
+                    height, width = bout_image.shape[-2:]
                     
                     #make dir if it doesnt exist
                     os.makedirs(output_dir, exist_ok=True)
@@ -139,7 +141,7 @@ try:
 
                                 # Read patch from the merged raster
                             patch = merged_bands[:, window.col_off:window.col_off + window.width, window.row_off:window.row_off + window.height]
-                            backscatterPatch = out_image[:, window.col_off:window.col_off + window.width, window.row_off:window.row_off + window.height]
+                            backscatterPatch = reprojected_out_image[:, window.col_off:window.col_off + window.width, window.row_off:window.row_off + window.height]
     
                                 # Check if patch contains valid data
                             if np.any(backscatterPatch):
