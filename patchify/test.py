@@ -5,9 +5,9 @@ from rasterio.plot import show
 import matplotlib.patches as mpatches
 import cv2
 # Path to the original TIFF patch
-original_patch_file = r'C:\Users\jakem\source\repos\seafloor-mapping\output\patch_5888_2560.tif'
+original_patch_file = r'data\bathy_reprojected.tif'
 # Path to the shapefile patch
-shapefile_patch_file = r'C:\Users\jakem\source\repos\seafloor-mapping\shapefile_output\mask_5888_2560.tif'
+shapefile_patch_file = r'C:\Users\jakem\source\repos\seafloor-mapping\shapefile_output\mask_128_2560.tif'
 
 # Define sediment colors within the 0-1 range
 sediment_colors = {
@@ -36,7 +36,7 @@ try:
         original_patch_data = src_original.read(1)  # Assuming it's a single-band image
 
     # Open the shapefile patch
-    with rasterio.open(shapefile_patch_file) as src_shapefile:
+    #with rasterio.open(shapefile_patch_file) as src_shapefile:
         # Plot both patches side by side
         fig, axs = plt.subplots(1, 2, figsize=(12, 6))
 
@@ -48,24 +48,24 @@ try:
         axs[0].grid(False)
 
         # Plot the shapefile patch and color it based on the 'sed_type' attribute
-        show(src_shapefile, ax=axs[1])
-        axs[1].set_title('Shapefile Patch')
-        axs[1].set_xlabel('X')
-        axs[1].set_ylabel('Y')
-        axs[1].grid(False)
+        #show(src_shapefile, ax=axs[1])
+        #axs[1].set_title('Shapefile Patch')
+        #axs[1].set_xlabel('X')
+        #axs[1].set_ylabel('Y')
+        #axs[1].grid(False)
 
         # Create legend for sediment types and colors
-        legend_patches = [mpatches.Patch(color=color, label=sed_type) for sed_type, color in sediment_colors.items()]
-        plt.legend(handles=legend_patches, loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=4)
+        #legend_patches = [mpatches.Patch(color=color, label=sed_type) for sed_type, color in sediment_colors.items()]
+        #plt.legend(handles=legend_patches, loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=4)
         
         plt.tight_layout()
-        #plt.show()
-        img = cv2.imread(original_patch_file,)
-        print(img)
-        cv2.imshow('',img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        cv2.waitKey(1)
+        plt.show()
+        #img = cv2.imread(original_patch_file,)
+        #print(img)
+        #cv2.imshow('',img)
+        #cv2.waitKey(0)
+        #cv2.destroyAllWindows()
+        #cv2.waitKey(1)
 
 except Exception as e:
     print("An error occurred:", e)

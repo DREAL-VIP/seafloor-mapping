@@ -127,7 +127,7 @@ try:
                     # Check if patch contains valid data
                     if np.any(patch):
                         # Generate output file name based on patch position
-                        output_file = os.path.join(raster_output_dir, f"mask_{x}_{y}.png")  # Changed extension to PNG
+                        output_file = os.path.join(raster_output_dir, f"patch_{x}_{y}.png")  # Changed extension to PNG
 
                         # Apply colors to the patch
                         colored_patch = np.zeros((patch.shape[0], patch.shape[1], 3), dtype=np.uint8)
