@@ -7,7 +7,7 @@ import cv2
 from PIL import Image
 import numpy as np
 # Path to the original TIFF patch
-patch = r"\patch_1408_768."
+patch = r"\patch_224_3840."
 original_patch_file = r'C:\Users\jakem\source\repos\seafloor-mapping\output'+ patch + "tif"
 # Path to the shapefile patch
 shapefile_patch_file = r'C:\Users\jakem\source\repos\seafloor-mapping\shapefile_output'+patch + "png"
@@ -46,7 +46,6 @@ try:
 
         # Plot both patches side by side
         fig, axs = plt.subplots(1, 3, figsize=(18, 6))  # Adjust the number of subplots and figure size as needed
-
         # Plot the original backscatter patch
         show(backscatter_data, ax=axs[0], cmap='gray')
         axs[0].set_title('Backscatter Patch')

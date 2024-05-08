@@ -16,8 +16,8 @@ from rasterio.enums import ColorInterp
 from PIL import Image  # Import Pillow library
 
 # TIFF
-#tiff = r'C:\Users\jakem\source\repos\seafloor-mapping\data\BS_composite_10m.tif'
-tiff = r'data\Nahant_NH_bathy.tif'
+tiff = r'C:\Users\jakem\source\repos\seafloor-mapping\data\BS_composite_10m.tif'
+#tiff = r'data\Nahant_NH_bathy.tif'
 #
 # Shapefile
 shape = r'C:\Users\jakem\source\repos\seafloor-mapping\data\Nahant_NH_sedcover.shp'
@@ -77,6 +77,9 @@ try:
             
             # Reset index of the GeoDataFrame
             gdf_clipped_reset = gdf_clipped.reset_index(drop=True)
+            shapes = gdf_clipped['geometry']
+
+            out_image, out_transform = mask(src, shapes, invert=False)
 
             # Create a single raster file where each sediment type is represented by a unique color
             combined_mask = np.zeros((src.height, src.width), dtype=np.uint8)
@@ -96,6 +99,7 @@ try:
                 # Save the color associated with the sediment type
                 colors[len(colors) + 1] = color
 
+
             # Write the combined mask to a temporary file
             with rasterio.open(temp_file_path, 'w', driver='GTiff', width=src.width, height=src.height, count=1,
                                dtype=combined_mask.dtype, crs=src.crs, transform=src.transform) as dst:
@@ -109,6 +113,7 @@ try:
 
             # Size of the patches
             patch_size = 128
+            step_size = 32
 
             # Create the output directory if it doesn't exist
             os.makedirs(raster_output_dir, exist_ok=True)
@@ -117,30 +122,35 @@ try:
             height, width = combined_mask.shape
 
             # Iterate over the image and extract patches
-            for y in tqdm(range(0, height, patch_size)):
-                for x in range(0, width, patch_size):
+            for y in tqdm(range(0, height, step_size)):
+                for x in range(0, width, step_size):
                     # Define window for the patch
                     window = Window(x, y, min(patch_size, width - x), min(patch_size, height - y))
 
                     # Read patch from the combined mask
                     patch = combined_mask[window.col_off:window.col_off + window.width,
                                           window.row_off:window.row_off + window.height]
+                    backscatterPatch = out_image[:, window.col_off:window.col_off + window.width, window.row_off:window.row_off + window.height]
 
                     # Check if patch contains valid data
-                    if np.any(patch):
-                        # Generate output file name based on patch position
-                        output_file = os.path.join(raster_output_dir, f"patch_{x}_{y}.png")  # Changed extension to PNG
+                    if np.any(backscatterPatch):
+                        # Calculate percentage of zeros
+                        zero_percentage = np.count_nonzero(backscatterPatch == 0) / backscatterPatch.size * 100
+                        print(backscatterPatch)
+                        if zero_percentage < 10:
+                            # Generate output file name based on patch position
+                            output_file = os.path.join(raster_output_dir, f"patch_{x}_{y}.png")  # Changed extension to PNG
 
-                        # Apply colors to the patch
-                        colored_patch = np.zeros((patch.shape[0], patch.shape[1], 3), dtype=np.uint8)
-                        for value, color in colors.items():
-                            colored_patch[patch == value] = color
+                            # Apply colors to the patch
+                            colored_patch = np.zeros((patch.shape[0], patch.shape[1], 3), dtype=np.uint8)
+                            for value, color in colors.items():
+                                colored_patch[patch == value] = color
 
-                        # Convert the colored patch array to PIL Image
-                        pil_image = Image.fromarray(colored_patch)
+                            # Convert the colored patch array to PIL Image
+                            pil_image = Image.fromarray(colored_patch)
 
-                        # Save the PIL Image as PNG
-                        pil_image.save(output_file)
+                            # Save the PIL Image as PNG
+                            pil_image.save(output_file)
 
 except Exception as e:
     print("An error occurred:", e)
